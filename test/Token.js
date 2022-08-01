@@ -1,6 +1,5 @@
 const { ethers } = require("hardhat")
 const { expect } = require("chai")
-const { inRange } = require("lodash")
 
 const tokens = (n) => {
     return ethers.utils.parseUnits(n.toString(), 'ether')
