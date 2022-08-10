@@ -1,22 +1,37 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux'
 import config from '../config.json'
-import { loadProvider, loadNetwork, loadAccount, loadToken } from '../store/interactions'
+import Navbar from './Navbar';
+import { loadProvider, loadNetwork, loadAccount, loadTokens, loadExchange } from '../store/interactions'
 
 
 
 function App() {
   const dispatch = useDispatch()
-  const loadBlockChainData = async () => {
-    await loadAccount(dispatch)
 
+  const loadBlockChainData = async () => {
     // Connect ethers to blockchain
     const provider = loadProvider(dispatch)
     const chainId = await loadNetwork(provider, dispatch)
 
+    // Reload page when network changes
+    window.ethereum.on('chainChanged', () => {
+      window.location.reload()
+    })
+
+    // Fetch current account/balance when account changes
+    window.ethereum.on('accountsChanged', async () => {
+      await loadAccount(provider, dispatch)
+    })
 
     // Token Smart contract
-    await loadToken(provider, config[chainId].dAPP.address, dispatch)
+    const dAPP = config[chainId].dAPP
+    const mETH = config[chainId].mETH
+    await loadTokens(provider, [dAPP.address, mETH.address], dispatch)
+
+    const exchangeConfig = config[chainId].exchange
+    // Load Exchange
+    await loadExchange(provider, exchangeConfig.address, dispatch)
 
   }
 
@@ -26,7 +41,7 @@ function App() {
   return (
     <div>
 
-      {/* Navbar */}
+      <Navbar />
 
       <main className='exchange grid'>
         <section className='exchange__section--left grid'>
